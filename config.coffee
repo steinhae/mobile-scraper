@@ -41,5 +41,5 @@ module.exports =
         "minPowerAsArray":                      [ "131", "PS" ]
         "maxPowerAsArray":                      [ "", "PS" ]
         "ambitCountry":                         "DE"
-        "zipcode":                              "35463"
-        "zipcodeRadius":                        "200"
+        "zipcode":                              "10439"
+        "zipcodeRadius":                        "50"

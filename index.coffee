@@ -150,7 +150,7 @@ doRequest = (id, cb) ->
                     "Accept-Language":  config.language + ",de;q=0.8,en-US;q=0.6,en;q=0.4"
                     "Cookie":           "featureVariant.copenhagen.1=NO_VARIANT; psv=b; featureVariant.recommendationEvaluation.1=NO_VARIANT; featureVariant.CallButtonABtest.1=NO_VARIANT; __utma=1.477301246.1426285825.1426396968.1426396968.1; globalSessionId=5c379adf-3612-4c80-bcf4-87700d40700a; via=google; loc=DE|50.4262|8.6639; screenWidthCookie=1440; JSESSIONID=36399062CF7BD2B7CB9CB5A8BE4A7631.search46-2_i07_3007; recent=205220350%2C190869164%2C204351322%2C131474296%2C200015864%2C201103843%2C196035740%2C207542649%2C203302749%2C198499705; POPUPCHECK=1428098261509; _ga=GA1.2.477301246.1426285825; _gat=1; _m_u=8d32b260-89f5-453b-b5dd-8d87b9884172; nuggAdCookie=001%7C006%7C012%7C014%7C024%7C031%7C032%7C035%7C038%7C042%7C044%7C051%7C063%7C068%7C073%7C075%7C077%7C081%7C092%7C095%7C096%7C099%7C100%7C103%7C105%7C106%7C108%7C110%7C112%7C114%7C116%7C119%7C121%7C123%7C125%7C999"
             }, (err, response, html) ->
-                console.info "response ", url
+                console.info "response", url
                 parseHtml err, html, id, "#{file}.js", cb
 
 ###

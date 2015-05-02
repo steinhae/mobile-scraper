@@ -24,7 +24,6 @@
     ],
     "dependencies": {
         "coffee-script": "*",
-        "express": "*",
         "request": "*",
         "cheerio": "*",
         "async": "*",
