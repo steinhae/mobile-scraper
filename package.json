@@ -1,0 +1,33 @@
+{
+    "name": "mobile-scraper",
+    "version": "0.1.0",
+    "description": "transform mobile.de content to excel",
+    "main": "coffee index.js",
+    "scripts": {
+        "start": "coffee index.coffee",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dominikwinter/mobile-scraper.git"
+    },
+    "author": "Dominik Winter <info@edge-project.org>",
+    "license": "MIT",
+    "keywords": [
+        "mobile.de",
+        "cars",
+        "auto",
+        "automobil",
+        "automobile",
+        "excel",
+        "scraper"
+    ],
+    "dependencies": {
+        "coffee-script": "*",
+        "express": "*",
+        "request": "*",
+        "cheerio": "*",
+        "async": "*",
+        "node-xlsx": "*"
+    }
+}
