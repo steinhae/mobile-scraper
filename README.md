@@ -1,6 +1,6 @@
 ## Description
 
-This script scrapes the content from mobile.de and export it to an excel sheet. You can sort and filter by all columns and find your favourit car faster.
+Get content from mobile.de and show it in an excel sheet. You can sort and filter by all columns and find your favourite car faster.
 
 ## Installation
 
@@ -21,7 +21,10 @@ npm install
 npm start
 ```
 
-3. then type in your browser <http://localhost:8081/>
+3. Then type in your browser <http://localhost:8081/>
+
+## Legal Regime
+Every search engines use equivalent technologies to extract relevant content from public HTML pages. Or every web browsers try to parse HTML pages and render the interpreted content on the screen. This script does the same. Please do not publish the content as your own!
 
 ## TODO
 
