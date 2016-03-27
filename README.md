@@ -7,7 +7,7 @@ Get content from mobile.de and show it in an excel sheet. You can sort and filte
 Type in your console:
 
 ```bash
-git clone https://github.com/dominikwinter/mobile-scraper.git
+git clone https://github.com/dominikbechstein/mobile-scraper.git
 npm install
 ```
 
