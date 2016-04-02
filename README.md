@@ -33,7 +33,7 @@ Every search engines use equivalent technologies to extract relevant content fro
 
 
 ## TODO
-
+- temporary broken .. mobile.de changed its html :-/
 - more stability
 - user interface: search form
 - default text orientation of 90 degrees for head line
