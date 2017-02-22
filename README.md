@@ -13,15 +13,15 @@ npm install
 
 ## Usage
 
-1. Edit config.coffee file as desired.
+1. Edit index.js file as desired.
 
 2. Type in your console:
 
 ```bash
-npm start
+node index.js
 ```
 
-3. Then type in your browser <http://localhost:8081/>
+3. Open generated excel.xls
 
 ## Legal Regime
 Every search engines use equivalent technologies to extract relevant content from public HTML pages. Or every web browsers try to parse HTML pages and render the interpreted content on the screen. This script does the same. Please do not publish the content as your own!
@@ -33,7 +33,6 @@ Every search engines use equivalent technologies to extract relevant content fro
 
 
 ## TODO
-- temporary broken .. mobile.de changed its html :-/
 - more stability
 - user interface: search form
 - default text orientation of 90 degrees for head line
