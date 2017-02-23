@@ -43,13 +43,13 @@ const postcode = '35390';
 const models = [
     [ 1900,  8], // Audi A3
     [22500,  9], // Seat Leon
-    [13200, 26], // Kia Cee'd
-    [24100, 39], // Toyota Auris
-    [20700, 17], // Renault Megane
-    [11600, 30], // Hyundai i30
+//    [13200, 26], // Kia Cee'd
+//    [24100, 39], // Toyota Auris
+//    [20700, 17], // Renault Megane
+//    [11600, 30], // Hyundai i30
     [ 9000, 20], // Ford Focus
     [ 3500, 73], // BMW 1er
-    [19000,  5], // Opel Astra
+//    [19000,  5], // Opel Astra
     [25200, 14], // Volkswagen Golf
     [16800,  4], // Mazda 3
     [16800, 34], // Mazda CX-3
@@ -58,7 +58,7 @@ const models = [
 
 const templasteSearchUrl =
 'http://suchen.mobile.de/fahrzeuge/search.html?isSearchRequest=true&scopeId=C&damageUnrepaired=NO_DAMAGE_UNREPAIRED&minFirstRegistrationDate=2015-01-01&' +
-'maxMileage=50000&maxPrice=15000&climatisation=AUTOMATIC_CLIMATISATION&features=CRUISE_CONTROL&makeModelVariant1.makeId=#makeId#&makeModelVariant1.modelId=#modelId#&' + 
+'maxMileage=50000&maxPrice=17500&climatisation=AUTOMATIC_CLIMATISATION&features=CRUISE_CONTROL&makeModelVariant1.makeId=#makeId#&makeModelVariant1.modelId=#modelId#&' +
 'doorCount=FOUR_OR_FIVE&ambitCountry=DE&zipcode=' + postcode + '&zipcodeRadius=50&fuels=PETROL&fuels=HYBRID&minPowerAsArray=74&maxPowerAsArray=KW&minPowerAsArray=KW';
 
 const _getTechnical = $ => {
@@ -259,7 +259,7 @@ const features_filter = [
     'Nichtraucher-Fahrzeug', 'Tagfahrlicht', 'Regensensor', 'CD-Spieler', 'Dachreling',
 ];
 
-fs.mkdirSync('./cache');
+fs.existsSync('./cache') || fs.mkdirSync('./cache');
 
 async.mapLimit(models, 2, (model, cb) => {
     const url = templasteSearchUrl.replace('#makeId#', model[0]).replace('#modelId#', model[1]);
