@@ -1,4 +1,5 @@
 node_modules
+yarn.lock
 cache
 excel.xls
 .~lock.excel.xls#
