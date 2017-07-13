@@ -26,7 +26,7 @@ const fs = require('fs');
 const request = require('request').defaults({ jar: true });
 const cheerio = require('cheerio');
 const async = require('async');
-const xlsx = require('node-xlsx');
+const Excel = require('exceljs');
 
 const headers = {
     'Pragma': 'no-cache',
@@ -38,18 +38,18 @@ const headers = {
     'Accept-Language': 'de-DE;q=0.8,en;q=0.6',
 };
 
-const postcode = '35390';
+const zipcode = '35390';
+const zipcodeRadius = '50'; // km
 
 const models = [
     [ 1900,  8], // Audi A3
     [22500,  9], // Seat Leon
-//    [13200, 26], // Kia Cee'd
-//    [24100, 39], // Toyota Auris
-//    [20700, 17], // Renault Megane
-//    [11600, 30], // Hyundai i30
+    [24100, 39], // Toyota Auris
+    [20700, 17], // Renault Megane
+    [11600, 30], // Hyundai i30
     [ 9000, 20], // Ford Focus
     [ 3500, 73], // BMW 1er
-//    [19000,  5], // Opel Astra
+    [19000,  5], // Opel Astra
     [25200, 14], // Volkswagen Golf
     [16800,  4], // Mazda 3
     [16800, 34], // Mazda CX-3
@@ -59,7 +59,11 @@ const models = [
 const templasteSearchUrl =
 'http://suchen.mobile.de/fahrzeuge/search.html?isSearchRequest=true&scopeId=C&damageUnrepaired=NO_DAMAGE_UNREPAIRED&minFirstRegistrationDate=2015-01-01&' +
 'maxMileage=50000&maxPrice=17500&climatisation=AUTOMATIC_CLIMATISATION&features=CRUISE_CONTROL&makeModelVariant1.makeId=#makeId#&makeModelVariant1.modelId=#modelId#&' +
-'doorCount=FOUR_OR_FIVE&ambitCountry=DE&zipcode=' + postcode + '&zipcodeRadius=50&fuels=PETROL&fuels=HYBRID&minPowerAsArray=74&maxPowerAsArray=KW&minPowerAsArray=KW';
+'doorCount=FOUR_OR_FIVE&ambitCountry=DE&zipcode=' + zipcode + '&zipcodeRadius=' + zipcodeRadius + '&fuels=PETROL&fuels=HYBRID&minPowerAsArray=74&maxPowerAsArray=KW&minPowerAsArray=KW';
+
+
+
+const idOf = i => (i >= 26 ? idOf((i / 26 >> 0) - 1) : '') + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.substr([i % 26 >> 0], 1);
 
 const _getTechnical = $ => {
     const items = {};
@@ -113,36 +117,72 @@ const _handleData = (data) => {
         });
     });
 
-    const excel = [];
-    const row = [];
+    const workbook = new Excel.Workbook();
+    const worksheet = workbook.addWorksheet('My Sheet', {
+        views: [
+            { xSplit: 1, ySplit: 1, zoomScale: 80 }
+        ]
+    });
 
+    const headers = [];
+
+    // head
     Object.keys(data[0]).forEach(key => {
         switch (key) {
-            case 'technical': return possible_technical.forEach(key => row.push(key));
-            case 'features':  return possible_features.forEach(key  => row.push(key));
-            default:          return row.push(key);
+            case 'technical': return possible_technical.forEach(key => headers.push(key));
+            case 'features':  return possible_features.forEach(key  => headers.push(key));
+            default:          return headers.push(key);
         }
     });
 
-    excel.push(row);
+    headers.push('sum');
 
-    data.forEach((items) => {
+    // TODO very ugly :/
+    {
+        const headerRow = worksheet.addRow(headers);
+        let num = 0;
+
+        Object.keys(data[0]).forEach(key => {
+            switch (key) {
+                case 'technical': return possible_technical.forEach(key => ++num);
+                case 'features':  return possible_features.forEach(key  => headerRow.getCell(++num).alignment = { textRotation: 90 });
+                default:          return ++num;
+            }
+        });
+    }
+
+    // data
+    data.forEach((items, i) => {
         const row = [];
+        let sum = '', cur = '';
 
         Object.keys(items).forEach((item) => {
             switch (item) {
                 case 'technical': return possible_technical.forEach((key) => row.push(items[item][key] || ''));
-                case 'features':  return possible_features.forEach((key)  => row.push(items[item][key] || ''));
+                case 'features':  return possible_features.forEach((key)  => { cur = items[item][key] || ''; sum += cur; row.push(cur); });
                 default:          return row.push(items[item]);
             }
         });
         
-        excel.push(row);
+        row.push(sum.length);
+
+        worksheet.addRow(row)
+/*
+        const dataRow = worksheet.addRow(row);
+        const start   = possible_technical.length;
+        const end     = start + possible_features.length;
+
+        ++i;
+
+        const cell = dataRow.getCell(idOf(row.length))
+        cell.value = { formula: '=COUNTIF(I' + i + ':AA' + i + ';"X")', result: 1 };
+        cell.type = Excel.ValueType.Formula;
+
+        dataRow.commit();
+*/
     });
 
-    const stream = fs.createWriteStream('excel.xls', (err) => { if (err) throw err });
-    stream.write(xlsx.build([{ name: "mySheetName", data: excel }]));
-    stream.end();
+    workbook.xlsx.writeFile('excel.xls');
 };
 
 const _parseResultPage = (url, cb) => {
@@ -254,9 +294,11 @@ const technical_filter = [
 
 const features_filter = [
     'ABS', 'Bordcomputer', 'Elektr. Fensterheber', 'Elektr. Seitenspiegel', 'Elektr. Wegfahrsperre', 
-    'ESP', 'Isofix (Kindersitzbefestigung)', 'Leichtmetallfelgen', 'Servolenkung', 'Tempomat', 
+    'ESP', 'Isofix (Kindersitzbefestigung)', 'Servolenkung',
     'Traktionskontrolle', 'Tuner/Radio', 'Zentralverriegelung', 'Partikelfilter', 'Nebelscheinwerfer',
     'Nichtraucher-Fahrzeug', 'Tagfahrlicht', 'Regensensor', 'CD-Spieler', 'Dachreling',
+
+    'Standheizung', 'Sportpaket', 'Sportfahrwerk', 'Elektr. Sitzeinstellung', 'Sportsitze', 'Xenonscheinwerfer', 'MP3-Schnittstelle', 'Lichtsensor', 'Freisprecheinrichtung', 'Multifunktionslenkrad', 'Tempomat', 'Start/Stopp-Automatik', ''
 ];
 
 fs.existsSync('./cache') || fs.mkdirSync('./cache');
