@@ -38,29 +38,45 @@ const headers = {
     'Accept-Language': 'de-DE;q=0.8,en;q=0.6',
 };
 
+const minFirstRegistrationDate = '2016-01-01';
 const zipcode = '35390';
-const zipcodeRadius = '50'; // km
+const zipcodeRadius = 35; // km
+const maxPrice = 24000; // €
+const maxMileage = 50000; // km
+const minPower = 74; // kW
 
 const models = [
     [ 1900,  8], // Audi A3
-    [22500,  9], // Seat Leon
-    [24100, 39], // Toyota Auris
-    [20700, 17], // Renault Megane
-    [11600, 30], // Hyundai i30
-    [ 9000, 20], // Ford Focus
-    [ 3500, 73], // BMW 1er
-    [19000,  5], // Opel Astra
-    [25200, 14], // Volkswagen Golf
-    [16800,  4], // Mazda 3
-    [16800, 34], // Mazda CX-3
-    [16800, 33], // Mazda CX-5    
+    [ 1900,  9], // Audi A4
+    //[22500,  9], // Seat Leon
+    //[24100, 39], // Toyota Auris
+    //[20700, 17], // Renault Megane
+    //[11600, 30], // Hyundai i30
+    [ 9000,  20, 'turnier'], // Ford Focus
+    //[ 3500, 73], // BMW 1er
+    //[ 3500, 73], // BMW 1er
+    [ 3500, 7], // BMW 3er
+    //[19000,  5], // Opel Astra
+    //[25200, 14], // Volkswagen Golf
+    [11000,   3], // Honda Civic
+    [11000,   2], // Honda Accord
+    [16800,   4], // Mazda 3
+    [16800,   7], // Mazda 6
+    [16800,  34], // Mazda CX-3
+    [16800,  33], // Mazda CX-5
+    [13200,  26], // Kia cee'd
+    [13200,  31], // Kia cee'd Sportwagon
+    [13200,  27], // Kia pro_cee'd
+    [24100,   6], // Toyota Camry
+    [24100,   9], // Toyota Corolla
 ];
 
-const templasteSearchUrl =
-'http://suchen.mobile.de/fahrzeuge/search.html?isSearchRequest=true&scopeId=C&damageUnrepaired=NO_DAMAGE_UNREPAIRED&minFirstRegistrationDate=2015-01-01&' +
-'maxMileage=50000&maxPrice=17500&climatisation=AUTOMATIC_CLIMATISATION&features=CRUISE_CONTROL&makeModelVariant1.makeId=#makeId#&makeModelVariant1.modelId=#modelId#&' +
-'doorCount=FOUR_OR_FIVE&ambitCountry=DE&zipcode=' + zipcode + '&zipcodeRadius=' + zipcodeRadius + '&fuels=PETROL&fuels=HYBRID&minPowerAsArray=74&maxPowerAsArray=KW&minPowerAsArray=KW';
+let templasteSearchUrl =
+    'https://suchen.mobile.de/fahrzeuge/search.html?isSearchRequest=true&scopeId=C&damageUnrepaired=NO_DAMAGE_UNREPAIRED&minFirstRegistrationDate=' + minFirstRegistrationDate +
+    '&maxMileage=' + maxMileage + '&maxPrice=' + maxPrice + '&adLimitation=ONLY_DEALER_ADS&makeModelVariant1.makeId=#makeId#&makeModelVariant1.modelId=#modelId#' +
+    '&ambitCountry=DE&zipcode=' + zipcode + '&zipcodeRadius=' + zipcodeRadius + '&fuels=PETROL&fuels=HYBRID&minPowerAsArray=' + minPower + '&maxPowerAsArray=KW&minPowerAsArray=KW';
 
+//let templasteSearchUrl = 'https://suchen.mobile.de/fahrzeuge/search.html?isSearchRequest=true&scopeId=C&sortOption.sortOrder=ASCENDING&sortOption.sortBy=searchNetGrossPrice&damageUnrepaired=NO_DAMAGE_UNREPAIRED&minFirstRegistrationDate=2016-01-01&maxMileage=40000&maxPrice=22500&makeModelVariant1.makeId=9000&makeModelVariant1.modelId=20&makeModelVariant1.modelDescription=Titanium&ambitCountry=DE&zipcode=35463&zipcodeRadius=50&fuels=PETROL&minPowerAsArray=87&maxPowerAsArray=KW&minPowerAsArray=KW&transmissions=AUTOMATIC_GEAR';
 
 
 const idOf = i => (i >= 26 ? idOf((i / 26 >> 0) - 1) : '') + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.substr([i % 26 >> 0], 1);
@@ -219,7 +235,7 @@ const _parseItemPage = (links, next) => {
     async.mapLimit(links, 2, (info, cb) => {
         const url  = info[0];
         const id   = info[1];
-        const file = './cache/' + id + '.json';
+        const file = './.cache/' + id + '.json';
 
         if (fs.exists(file, exists => {
             if (exists) {
@@ -275,7 +291,6 @@ const technical_filter = [
     'Energieeffizienzklasse',
     'Anzahl Sitzplätze',
     'Anzahl der Türen',
-    'Getriebe',
     'Schadstoffklasse',
     'Umweltplakette',
     'Anzahl der Fahrzeughalter',
@@ -297,24 +312,30 @@ const features_filter = [
     'ESP', 'Isofix (Kindersitzbefestigung)', 'Servolenkung',
     'Traktionskontrolle', 'Tuner/Radio', 'Zentralverriegelung', 'Partikelfilter', 'Nebelscheinwerfer',
     'Nichtraucher-Fahrzeug', 'Tagfahrlicht', 'Regensensor', 'CD-Spieler', 'Dachreling',
-
     'Standheizung', 'Sportpaket', 'Sportfahrwerk', 'Elektr. Sitzeinstellung', 'Sportsitze', 'Xenonscheinwerfer', 'MP3-Schnittstelle', 'Lichtsensor', 'Freisprecheinrichtung', 'Multifunktionslenkrad', 'Tempomat', 'Start/Stopp-Automatik', ''
 ];
 
-fs.existsSync('./cache') || fs.mkdirSync('./cache');
+fs.existsSync('./.cache') || fs.mkdirSync('./.cache');
 
 async.mapLimit(models, 2, (model, cb) => {
-    const url = templasteSearchUrl.replace('#makeId#', model[0]).replace('#modelId#', model[1]);
+    let url = templasteSearchUrl.replace('#makeId#', model[0]).replace('#modelId#', model[1]);
+
+    if (model[2]) {
+        url += '&makeModelVariant1.modelDescription=' + model[2];
+    } else {
+        // TODO temporary hack
+        url += '&categories=EstateCar';
+    }
 
     _parseResultPage(url, (links) => {
         _parseItemPage(links, cb);
     });
 }, () => {
-    fs.readdir('./cache', (err, items) => {
+    fs.readdir('./.cache', (err, items) => {
         const data = [];
 
         items.forEach((item) => {
-            let entry = require('./cache/' + item);
+            let entry = require('./.cache/' + item);
 
             Object.keys(entry.technical).forEach((name) => {
                 if (technical_filter.indexOf(name) > -1) {
