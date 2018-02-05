@@ -13,18 +13,18 @@ npm install
 
 ## Usage
 
-1. Edit index.js file as desired.
+1. Edit config/search.js and config/l10n.js files as desired.
 
 2. Type in your console:
 
 ```bash
-node index.js
+npm start
 ```
 
-3. Open generated excel.xls
+3. Open generated excel_<language>.xls
 
 ## Legal Regime
-Every search engines use equivalent technologies to extract relevant content from public HTML pages. Or every web browsers try to parse HTML pages and render the interpreted content on the screen. This script does the same. Please do not publish the content as your own!
+Every search engines use equivalent technologies to extract relevant content from public HTML pages. Or every web browsers try to parse HTML pages and render the interpreted content on the screen. This script does the same. Please do not run this script excessively or publish the content as your own!
 
 ### More information about scraping (in Germany)
 - [Screen Scraping – Wann ist das Auslesen und die Veröffentlichung fremder Daten zulässig?](http://www.rechtzweinull.de/archives/100-screen-scraping-wann-ist-das-auslesen-und-die-veroeffentlichung-fremder-daten-zulaessig.html)

@@ -23,63 +23,35 @@
  */
 
 const fs = require('fs');
-const request = require('request').defaults({ jar: true });
 const cheerio = require('cheerio');
 const async = require('async');
 const Excel = require('exceljs');
 
-const headers = {
-    'Pragma': 'no-cache',
-    'Cache-Control': 'no-cache',
-    'Upgrade-Insecure-Requests': 1,
-    'User-Agent': 'Mozilla/6.1 (Macintosh; ARM Mac OS X 12_12_3) AppleWebKit/737.36 (KHTML, like Gecko) Chrome/62.0.2821.0 Safari/737.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'Accept-Encoding': 'gzip, deflate, sdch',
-    'Accept-Language': 'de-DE;q=0.8,en;q=0.6',
-};
+const { models, options } = require('./config/search');
+const l10n = require('./config/l10n')[options.language];
+const headers = require('./config/headers')(l10n.browser_language);
+const cacheDir = './.cache_' + options.language;
 
-const minFirstRegistrationDate = '2016-01-01';
-const zipcode = '35390';
-const zipcodeRadius = 35; // km
-const maxPrice = 24000; // €
-const maxMileage = 50000; // km
-const minPower = 74; // kW
+const requestRaw = require('request');
+const request = requestRaw.defaults({
+    jar: true,
+    gzip: true,
+    followAllRedirects: true,
+    headers: headers,
+});
 
-const models = [
-    [ 1900,  8], // Audi A3
-    [ 1900,  9], // Audi A4
-    //[22500,  9], // Seat Leon
-    //[24100, 39], // Toyota Auris
-    //[20700, 17], // Renault Megane
-    //[11600, 30], // Hyundai i30
-    [ 9000,  20, 'turnier'], // Ford Focus
-    //[ 3500, 73], // BMW 1er
-    //[ 3500, 73], // BMW 1er
-    [ 3500, 7], // BMW 3er
-    //[19000,  5], // Opel Astra
-    //[25200, 14], // Volkswagen Golf
-    [11000,   3], // Honda Civic
-    [11000,   2], // Honda Accord
-    [16800,   4], // Mazda 3
-    [16800,   7], // Mazda 6
-    [16800,  34], // Mazda CX-3
-    [16800,  33], // Mazda CX-5
-    [13200,  26], // Kia cee'd
-    [13200,  31], // Kia cee'd Sportwagon
-    [13200,  27], // Kia pro_cee'd
-    [24100,   6], // Toyota Camry
-    [24100,   9], // Toyota Corolla
-];
+const templasteSearchUrl = l10n.url.search + Object.keys(options).map(name => {
+    let values = options[name];
 
-let templasteSearchUrl =
-    'https://suchen.mobile.de/fahrzeuge/search.html?isSearchRequest=true&scopeId=C&damageUnrepaired=NO_DAMAGE_UNREPAIRED&minFirstRegistrationDate=' + minFirstRegistrationDate +
-    '&maxMileage=' + maxMileage + '&maxPrice=' + maxPrice + '&adLimitation=ONLY_DEALER_ADS&makeModelVariant1.makeId=#makeId#&makeModelVariant1.modelId=#modelId#' +
-    '&ambitCountry=DE&zipcode=' + zipcode + '&zipcodeRadius=' + zipcodeRadius + '&fuels=PETROL&fuels=HYBRID&minPowerAsArray=' + minPower + '&maxPowerAsArray=KW&minPowerAsArray=KW';
+    if (!Array.isArray(values)) {
+        values = [values];
+    }
 
-//let templasteSearchUrl = 'https://suchen.mobile.de/fahrzeuge/search.html?isSearchRequest=true&scopeId=C&sortOption.sortOrder=ASCENDING&sortOption.sortBy=searchNetGrossPrice&damageUnrepaired=NO_DAMAGE_UNREPAIRED&minFirstRegistrationDate=2016-01-01&maxMileage=40000&maxPrice=22500&makeModelVariant1.makeId=9000&makeModelVariant1.modelId=20&makeModelVariant1.modelDescription=Titanium&ambitCountry=DE&zipcode=35463&zipcodeRadius=50&fuels=PETROL&minPowerAsArray=87&maxPowerAsArray=KW&minPowerAsArray=KW&transmissions=AUTOMATIC_GEAR';
-
+    return values.map(value => `${name}=${value}`).join('&');
+}).join('&');
 
 const idOf = i => (i >= 26 ? idOf((i / 26 >> 0) - 1) : '') + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.substr([i % 26 >> 0], 1);
+const ifempty = (val, alt) => typeof val === 'undefined' ? alt : val;
 
 const _getTechnical = $ => {
     const items = {};
@@ -89,9 +61,9 @@ const _getTechnical = $ => {
         let val = $(v.children[1]).text().trim();
 
         switch (key) {
-            case 'Kilometerstand':  key += ' (km)';     val = val.replace(/[^\d]/g, '') * 1;        break;
-            case 'Leistung':        key += ' (PS)';     val = val.match(/(\d+)\s+PS/)[1] * 1;       break;
-            case 'Erstzulassung':                       val = val.split('/').reverse().join('-');   break;
+            case l10n.mileage:              key += ' (km)';     val = val.replace(/[^\d]/g, '') * 1;        break;
+            case l10n.power:                key += ' (PS)';     val = val.match(/(\d+)\s+PS/)[1] * 1;       break;
+            case l10n.first_registration:                       val = val.split('/').reverse().join('-');   break;
         }
 
         items[key] = val;
@@ -114,7 +86,7 @@ const _getFeatures = $ => {
 };
 
 const _handleData = (data) => {
-    console.info('cars found:', data.length);
+    console.info('Cars found:', data.length);
 
     const possible_technical = [];
     const possible_features = [];
@@ -174,8 +146,8 @@ const _handleData = (data) => {
 
         Object.keys(items).forEach((item) => {
             switch (item) {
-                case 'technical': return possible_technical.forEach((key) => row.push(items[item][key] || ''));
-                case 'features':  return possible_features.forEach((key)  => { cur = items[item][key] || ''; sum += cur; row.push(cur); });
+                case 'technical': return possible_technical.forEach((key) => row.push(ifempty(items[item][key], '')));
+                case 'features':  return possible_features.forEach((key)  => { cur = ifempty(items[item][key], ''); sum += cur; row.push(cur); });
                 default:          return row.push(items[item]);
             }
         });
@@ -198,17 +170,15 @@ const _handleData = (data) => {
 */
     });
 
-    workbook.xlsx.writeFile('excel.xls');
+    workbook.xlsx.writeFile(`excel_${options.language}.xls`);
+
+    console.info(`Output: excel_${options.language}.xls`);
 };
 
 const _parseResultPage = (url, cb) => {
     console.info('SEARCH GET', url)
 
-    request({
-        'url': url,
-        'gzip': true,
-        'headers': headers
-    }, (err, response, html) => {
+    request(url, (err, response, html) => {
         if (err) {
             console.error(err, response, html);
             throw err;
@@ -235,7 +205,7 @@ const _parseItemPage = (links, next) => {
     async.mapLimit(links, 2, (info, cb) => {
         const url  = info[0];
         const id   = info[1];
-        const file = './.cache/' + id + '.json';
+        const file = cacheDir + '/' + id + '.json';
 
         if (fs.exists(file, exists => {
             if (exists) {
@@ -244,11 +214,7 @@ const _parseItemPage = (links, next) => {
 
             console.info('CAR GET', url);
 
-            request({
-                'url': url,
-                'gzip': true,
-                'headers': headers
-            }, (err, response, html) => {
+            request(url, (err, response, html) => {
                 if (err) {
                     console.error(err, response, html);
                     throw err;
@@ -279,85 +245,46 @@ const _parseItemPage = (links, next) => {
     });
 };
 
+fs.existsSync(cacheDir) || fs.mkdirSync(cacheDir);
 
-const technical_filter = [
-    'Verbrauch',
-    'CO2-Emissionen',
-    'CO2-Effizienz',
-    'Airbags',
-    'Kategorie',
-    'Kraftstoffart',
-    'Zugr.-lgd. Treibstoffart',
-    'Energieeffizienzklasse',
-    'Anzahl Sitzplätze',
-    'Anzahl der Türen',
-    'Schadstoffklasse',
-    'Umweltplakette',
-    'Anzahl der Fahrzeughalter',
-    'HU',
-    'Klimatisierung',
-    'Airbags',
-    'Farbe (Hersteller)',
-    'Innenausstattung',
-    'Fahrzeugnummer',
-    'Verfügbarkeit',
-    'Baujahr',
-    'Herkunft',
-    'Hubraum',
-    'Fahrzeugzustand', // TODO
-];
+request(l10n.url.start, (err, response, html) => {
+    if (err) throw err;
 
-const features_filter = [
-    'ABS', 'Bordcomputer', 'Elektr. Fensterheber', 'Elektr. Seitenspiegel', 'Elektr. Wegfahrsperre', 
-    'ESP', 'Isofix (Kindersitzbefestigung)', 'Servolenkung',
-    'Traktionskontrolle', 'Tuner/Radio', 'Zentralverriegelung', 'Partikelfilter', 'Nebelscheinwerfer',
-    'Nichtraucher-Fahrzeug', 'Tagfahrlicht', 'Regensensor', 'CD-Spieler', 'Dachreling',
-    'Standheizung', 'Sportpaket', 'Sportfahrwerk', 'Elektr. Sitzeinstellung', 'Sportsitze', 'Xenonscheinwerfer', 'MP3-Schnittstelle', 'Lichtsensor', 'Freisprecheinrichtung', 'Multifunktionslenkrad', 'Tempomat', 'Start/Stopp-Automatik', ''
-];
-
-fs.existsSync('./.cache') || fs.mkdirSync('./.cache');
-
-async.mapLimit(models, 2, (model, cb) => {
-    let url = templasteSearchUrl.replace('#makeId#', model[0]).replace('#modelId#', model[1]);
-
-    if (model[2]) {
-        url += '&makeModelVariant1.modelDescription=' + model[2];
-    } else {
-        // TODO temporary hack
-        url += '&categories=EstateCar';
-    }
-
-    _parseResultPage(url, (links) => {
-        _parseItemPage(links, cb);
-    });
-}, () => {
-    fs.readdir('./.cache', (err, items) => {
-        const data = [];
-
-        items.forEach((item) => {
-            let entry = require('./.cache/' + item);
-
-            Object.keys(entry.technical).forEach((name) => {
-                if (technical_filter.indexOf(name) > -1) {
-                    delete entry.technical[name];
-                }
-            });
-
-            Object.keys(entry.features).forEach((name) => {
-                if (features_filter.indexOf(name) > -1) {
-                    delete entry.features[name];
-                }
-            });
-
-            data.push(entry);
-        });
-
-        if (!data.length) {
-            console.info('nothing to do');
-        } else {
-            _handleData(data);
+    async.mapLimit(models, 2, (model, cb) => {
+        let url = templasteSearchUrl.replace('#makeId#', model[0]).replace('#modelId#', model[1]);
+    
+        if (model[2]) {
+            url += '&makeModelVariant1.modelDescription=' + model[2];
         }
+    
+        _parseResultPage(url, links => _parseItemPage(links, cb));
+    }, () => {
+        fs.readdir(cacheDir, (err, items) => {
+            const data = [];
+    
+            items.forEach((item) => {
+                let entry = require(cacheDir + '/' + item);
+    
+                Object.keys(entry.technical).forEach((name) => {
+                    if (l10n.technical_excludes.indexOf(name) > -1) {
+                        delete entry.technical[name];
+                    }
+                });
+    
+                Object.keys(entry.features).forEach((name) => {
+                    if (l10n.features_excludes.indexOf(name) > -1) {
+                        delete entry.features[name];
+                    }
+                });
+    
+                data.push(entry);
+            });
+    
+            if (!data.length) {
+                console.info('nothing to do');
+            } else {
+                _handleData(data);
+            }
+        });
     });
 });
-
-
