@@ -1,50 +1,55 @@
 module.exports = {
     options: {
-        language: 'en', // currently 'en' and 'de' is supported
+        language: 'de', // currently 'en' and 'de' is supported
         ambitCountry: 'DE', // 'DE', 'GB', ...
         zipcode: '35390', // (obviously only in Germany)
-        zipcodeRadius: 55, // km (obviously only in Germany)
-        categories: 'EstateCar',
+        zipcodeRadius: 100, // km (obviously only in Germany)
+        // categories: 'NakedBike', // values: NakedBike, EstateCar, etc.
         isSearchRequest: true,
-        scopeId: 'C',
+        scopeId: '#scopeId#', // will be replaced with first index in models
         damageUnrepaired: 'NO_DAMAGE_UNREPAIRED',
-        minFirstRegistrationDate: '2016-01-01',
+        // minFirstRegistrationDate: '2016-01-01',
         maxMileage: 50000, // km
-        maxPrice: 24000, // €
-        adLimitation: 'ONLY_DEALER_ADS',
-        'makeModelVariant1.makeId': '#makeId#',
-        'makeModelVariant1.modelId': '#modelId#',
-        fuels: ['PETROL', 'HYBRID'],
-        minPowerAsArray: [150, 'PS'],
+        maxPrice: 10000, // €
+        // adLimitation: 'ONLY_DEALER_ADS',
+        'makeModelVariant1.makeId': '#makeId#', // will be replaced with second index in models
+        // fuels: ['PETROL', 'HYBRID'],
+        // minPowerAsArray: [150, 'PS'],
+
     },
     models: [
-        [ 1900,   8], // Audi A3
-        //[ 1900,   9], // Audi A4
-        //[22500,   9, 'fr'], // Seat Leon
-        //[22500,   9, 'cubra'], // Seat Leon
-        //[24100,  39], // Toyota Auris
-        //[20700,  17], // Renault Megane
-        //[11600,  30], // Hyundai i30
-        //[11600,  33], // Hyundai i40
-        [ 9000,  20], // Ford Focus
-        //[ 3500,  73], // BMW 1er
-        //[ 3500,  73], // BMW 1er
-        [ 3500,   7], // BMW 3er
-        //[19000,   5], // Opel Astra
-        //[25200,  14], // Volkswagen Golf
-        //[11000,   3], // Honda Civic
-        //[11000,   2], // Honda Accord
-        [16800,   4], // Mazda 3
-        //[16800,   7], // Mazda 6
-        //[16800,  34], // Mazda CX-3
-        //[16800,  33], // Mazda CX-5
-        //[13200,  26], // Kia cee'd
-        //[13200,  31], // Kia cee'd Sportwagon
-        //[13200,  27], // Kia pro_cee'd
-        //[24100,   6], // Toyota Camry
-        //[24100,   9], // Toyota Corolla
-        //[24100,   4], // Toyota Avensis
-        //[22900,  10], // Skoda Octavia
-        //[22900,  12], // Skoda Superb
+        ["MB", 24400, '', 'Speed+Triple'],
+        // ["MB", 3500,  '', 'S1000R'],
+        // ["MB", 23600, '', 'GSX+R+600'],
+        // ["MB", 13900, '', '690'],
+        // ["MB", 23600, '', 'DR'],
+
+        // ["C", 1900,   9], // Audi A4
+        // ["C", 22500,   9, 'fr'], // Seat Leon
+        // ["C", 22500,   9, 'Cupra'], // Seat Leon
+        // ["C", 24100,  39], // Toyota Auris
+        // ["C", 20700,  17], // Renault Megane
+        // ["C", 11600,  30], // Hyundai i30
+        // ["C", 11600,  33], // Hyundai i40
+        // ["C",  9000,  20], // Ford Focus
+        // ["C",  3500,  73], // BMW 1er
+        // ["C",  3500,  73], // BMW 1er
+        // ["C",  3500,   7], // BMW 3er
+        // ["C", 19000,   5], // Opel Astra
+        // ["C", 25200,  14], // Volkswagen Golf
+        // ["C", 11000,   3], // Honda Civic
+        // ["C", 11000,   2], // Honda Accord
+        // ["C", 16800,   4], // Mazda 3
+        // ["C", 16800,   7], // Mazda 6
+        // ["C", 16800,  34], // Mazda CX-3
+        // ["C", 16800,  33], // Mazda CX-5
+        // ["C", 13200,  26], // Kia cee'd
+        // ["C", 13200,  31], // Kia cee'd Sportwagon
+        // ["C", 13200,  27], // Kia pro_cee'd
+        // ["C", 24100,   6], // Toyota Camry
+        // ["C", 24100,   9], // Toyota Corolla
+        // ["C", 24100,   4], // Toyota Avensis
+        // ["C", 22900,  10], // Skoda Octavia
+        // ["C", 22900,  12], // Skoda Superb
     ]
 };
