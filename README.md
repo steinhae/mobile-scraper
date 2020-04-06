@@ -22,14 +22,14 @@ Install selenium executable for your platform according to https://www.npmjs.com
 ```bash
 npm start
 ```
-3. Open generated excel_<language>.xls
+3. Open generated excel_\<language\>.xls
 
 ## Advanced Usage
 
 Mobile-scraper downloads and caches each vehicle before it generates the excel list
-as a list step. It's possible to skip the downloading part and just generate the excel
+as a last step. It's possible to skip the downloading part and just generate the excel
 list from a user defined cache directory. E.g. you move the downloaded json files
-from the cache dir i.e. .cache_<language>/ after running the program and just
+from the cache dir i.e. .cache_\<language\>/ after running the program and just
 want to regenerate the excel list.
 
 ```bash
