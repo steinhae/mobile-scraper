@@ -308,6 +308,21 @@ function jsonExtension(element) {
   return extName === '.json';
 };
 
+const _filterCachedVehicles = (links, next) => {
+  fs.readdir(cacheDir, (err, items) => {
+    var existingIds = new Set()
+    items.filter(jsonExtension).forEach(
+      (item) => existingIds.add(item.substr(0, item.indexOf("."))));
+    var filteredLinks = links.filter(link => !existingIds.has(link[1]));
+    var skippedLinks = links.length - filteredLinks.length;
+    if (skippedLinks > 0) {
+      console.info(`[+] Skipping ${skippedLinks} downloads because vehicles exist in cache`);
+    }
+    console.info(filteredLinks);
+    next(filteredLinks);
+  });
+}
+
 const _generateExcel = (cacheDir) => {
   console.info("[+] Reading vehicle information from cache dir " + cacheDir)
   fs.readdir(cacheDir, (err, items) => {
@@ -369,8 +384,10 @@ request(l10n.url.start, (err, response, html) => {
       console.info('[+] Lets find some vehicles')
       _parseResultPage(url, links => {
         console.info(`[+] Found ${links.length} vehicles`);
-        console.info('[+] Lets query the details for every vehicle')
-        _parseItemPage(links, cb);
+        _filterCachedVehicles(links, filteredLinks => {
+          console.info('[+] Lets query the details for every vehicle')
+          _parseItemPage(links, cb);
+        });
       });
     }, () => _generateExcel(cacheDir));
   }
