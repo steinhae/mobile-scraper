@@ -4,3 +4,4 @@ excel*.xls
 package-lock.json
 .cache*
 .~lock.excel*.xls#
+results/*
